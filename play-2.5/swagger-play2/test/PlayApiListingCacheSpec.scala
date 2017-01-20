@@ -3,7 +3,7 @@ import java.io.File
 import io.swagger.config.ScannerFactory
 import io.swagger.models.{ModelImpl, HttpMethod}
 import io.swagger.models.parameters.{QueryParameter, BodyParameter, PathParameter}
-import io.swagger.models.properties.{RefProperty, ArrayProperty}
+import io.swagger.models.properties.{RefProperty, ArrayProperty, MapProperty}
 import play.modules.swagger._
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
@@ -29,6 +29,7 @@ PUT /api/cat @testdata.CatController.add1
 GET /api/fly testdata.FlyController.list
 PUT /api/dog testdata.DogController.add1
 PUT /api/dog/:id testdata.DogController.add0(id:String)
+GET /api/testView testdata.TestViewController.list
     """, new File("")).right.get.collect {
       case (route: PlayRoute) =>
         val routeName = s"${route.call.packageName}.${route.call.controller}$$.${route.call.method}"
@@ -79,8 +80,8 @@ PUT /api/dog/:id testdata.DogController.add0(id:String)
       swagger must beSome
       swagger.get.getSwagger must beEqualTo("2.0")
       swagger.get.getBasePath must beEqualTo(basePath)
-      swagger.get.getPaths.size must beEqualTo(7)
-      swagger.get.getDefinitions.size must beEqualTo(6)
+      swagger.get.getPaths.size must beEqualTo(8)
+      swagger.get.getDefinitions.size must beEqualTo(7)
       swagger.get.getHost must beEqualTo(swaggerConfig.getHost)
       swagger.get.getInfo.getContact.getName must beEqualTo(swaggerConfig.getContact)
       swagger.get.getInfo.getVersion must beEqualTo(swaggerConfig.getVersion)
@@ -193,6 +194,15 @@ PUT /api/dog/:id testdata.DogController.add0(id:String)
       dogDef.getType must beEqualTo("object")
       dogDef.getProperties.containsKey("id") must beTrue
       dogDef.getProperties.containsKey("name") must beTrue
+
+      val testViewDef = swagger.get.getDefinitions.get("TestView").asInstanceOf[ModelImpl]
+      testViewDef.getType must beEqualTo("object")
+      val stringObjectMap = testViewDef.getProperties.get("stringObjectMap").asInstanceOf[MapProperty]
+      stringObjectMap.getType must beEqualTo("object")
+      stringObjectMap.getAdditionalProperties.getType must beEqualTo("object")
+
+      val objectProperty = testViewDef.getProperties.get("object")
+      objectProperty.getType must beEqualTo("object")
     }
   }
 
