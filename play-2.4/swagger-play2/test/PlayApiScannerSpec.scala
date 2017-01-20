@@ -19,6 +19,7 @@ PUT /api/cat @testdata.CatController.add1
 GET /api/fly testdata.FlyController.list
 PUT /api/dog testdata.DogController.add1
 PUT /api/dog/:id testdata.DogController.add0(id:String)
+GET /api/testView testdata.TestViewController.list
                                                        """, new File("")).right.get.collect {
       case (route: PlayRoute) => {
         val routeName = s"${route.call.packageName}.${route.call.controller}$$.${route.call.method}"
@@ -43,9 +44,10 @@ PUT /api/dog/:id testdata.DogController.add0(id:String)
     "identify correct API classes based on router and API annotations" in {
       val classes = new PlayApiScanner().classes()
       
-      classes.toList.length must beEqualTo(2)
+      classes.toList.length must beEqualTo(3)
       classes.contains(SwaggerContext.loadClass("testdata.DogController")) must beTrue
       classes.contains(SwaggerContext.loadClass("testdata.CatController")) must beTrue
+      classes.contains(SwaggerContext.loadClass("testdata.TestViewController")) must beTrue
     }
   }
 
